@@ -23,5 +23,5 @@ jobs:
       - name: Build and Test
         uses: actions-rs/cargo@v1
         with:
-          command: build --release
-          args: --verbose --workspace
+          command: build
+          args: --release --verbose --workspace
