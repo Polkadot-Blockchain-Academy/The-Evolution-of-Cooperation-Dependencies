@@ -1,0 +1,13 @@
+[package]
+name = "strategies"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+named = { path = "../named" }
+urandom = "0.1.1"
+itertools = "0.12.1"
+serde = { version = "1.0.198", features = ["derive"] }
+enum-display-derive = "0.1.1"
