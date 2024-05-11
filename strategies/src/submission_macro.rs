@@ -17,6 +17,9 @@
 macro_rules! submit_strategy {
     ($strategy:expr, $participant_type:ident, $participant_name:literal, $participant_pub_name:literal) => {
             pub fn provide_strategy() -> OwnedStrategy {
+                if $participant_type == ParticipantType::System {
+                    compile_error!("ParticipantType::System isn't acceptable. Use Remote or Onsite.");
+                }
                 OwnedStrategy::new(
                     Participant::new($participant_type, $participant_name, $participant_pub_name),
                     Rc::new(RefCell::new(Box::new($strategy))),
