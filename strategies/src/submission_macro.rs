@@ -13,17 +13,59 @@
  *  limitations under the License.
  */
 
+
+
 #[macro_export]
 macro_rules! submit_strategy {
     ($strategy:expr, $participant_type:ident, $participant_name:literal, $participant_pub_name:literal) => {
             pub fn provide_strategy() -> OwnedStrategy {
-                if $participant_type == ParticipantType::System {
-                    compile_error!("ParticipantType::System isn't acceptable. Use Remote or Onsite.");
-                }
                 OwnedStrategy::new(
                     Participant::new($participant_type, $participant_name, $participant_pub_name),
                     Rc::new(RefCell::new(Box::new($strategy))),
                 )
             }
-        }
+
+        #[cfg(test)]
+		mod tests {
+			use super::*;
+			use std::time::{Duration, Instant};
+			use crate::Move::X;
+			use crate::Move::Y;
+			use crate::Move::Z;
+			use crate::Round;
+
+			#[test]
+			fn test_participant_type() {
+				assert_ne!(ParticipantType::System, $participant_type, "participant type should not be System");
+			}
+
+			#[test]
+			fn test_strategy_time() {
+				let max_move_time = Duration::from_millis(100);
+				let max_handle_round_time = Duration::from_millis(100);
+				let strategy = OwnedStrategy::new(
+                    Participant::new($participant_type, $participant_name, $participant_pub_name),
+                    Rc::new(RefCell::new(Box::new($strategy))),
+                );
+
+				let start_time = Instant::now();
+				strategy.strategy.borrow_mut().play_for_favoured_move(X);
+				let elapsed = start_time.elapsed();
+				assert!(elapsed < max_move_time, "play_for_favoured_move exceeded timeout. elapsed:{:?}, max:{:?}", elapsed, max_move_time);
+
+				let mut rounds = vec![];
+				for m1 in vec![X, Y, Z] {
+					for m2 in vec![X, Y, Z] {
+						rounds.push(Round::of(m1, m2));
+					}
+				}
+				for round in rounds {
+					let start_time = Instant::now();
+					strategy.strategy.borrow_mut().handle_last_round(round, X);
+					let elapsed = start_time.elapsed();
+					assert!(elapsed < max_handle_round_time, "handle_last_round exceeded timeout. elapsed:{:?}, max:{:?}", elapsed, max_handle_round_time);
+				}
+			}
+		}
+	}
 }
