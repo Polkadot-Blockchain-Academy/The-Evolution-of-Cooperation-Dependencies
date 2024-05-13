@@ -29,10 +29,6 @@ macro_rules! submit_strategy {
 		mod tests {
 			use super::*;
 			use std::time::{Duration, Instant};
-			use crate::Move::X;
-			use crate::Move::Y;
-			use crate::Move::Z;
-			use crate::Round;
 
 			#[test]
 			fn test_participant_type() {
