@@ -16,8 +16,8 @@
 pub use core::fmt::Debug;
 pub use std::collections::VecDeque;
 
-use urandom::Random;
 use urandom::rng::Xoshiro256;
+use urandom::Random;
 
 use crate::Move;
 use crate::Move::{X, Y, Z};
