@@ -13,9 +13,6 @@
  *  limitations under the License.
  */
 
-pub mod submission_macro;
-pub mod utils;
-
 #[macro_use]
 extern crate enum_display_derive;
 
@@ -32,6 +29,9 @@ use Move::Z;
 pub use named::Named;
 
 use crate::Move::{X, Y};
+
+pub mod submission_macro;
+pub mod utils;
 
 /// This is the trait that needs to be implemented and submitted
 pub trait Strategy: Named + Sync {
@@ -174,14 +174,15 @@ impl PartialEq<Self> for OwnedStrategy {
     fn eq(&self, other: &Self) -> bool {
         self.owner.eq(&other.owner)
             && self
-                .strategy
-                .borrow()
-                .name()
-                .eq(other.strategy.borrow().name())
+            .strategy
+            .borrow()
+            .name()
+            .eq(other.strategy.borrow().name())
     }
 }
 
 impl Eq for OwnedStrategy {}
+
 impl Hash for OwnedStrategy {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.owner.hash(state);
@@ -206,3 +207,42 @@ pub trait Named {
     fn name(&self) -> &str;
 }
 
+#[cfg(test)]
+mod tests {
+    use ParticipantType::Onsite;
+
+    use super::*;
+
+    #[derive(Named)]
+    struct MyStrategy {
+        pub moves: u8,
+    }
+
+    impl Strategy for MyStrategy {
+        fn play_for_favoured_move(&mut self, favoured_move: Move) -> Move {
+            let m = if self.moves % 2 == 0 { favoured_move } else { favoured_move.opposite() };
+            println!("Playing: {} because moves: {}", m, self.moves);
+            self.moves += 1;
+            m
+        }
+
+        fn handle_last_round(&mut self, round: Round, favoured_move: Move) {}
+    }
+
+    #[test]
+    fn test_submit_strategy_macro() {
+        submit_strategy!(MyStrategy { moves: 0 }, Onsite, "MyStrategy", "MyStrategy");
+        let (_, get_strategy) = provide_strategy();
+        for matchup in 0..1 {
+            let s1 = Rc::new(RefCell::new(get_strategy()));
+            let s2 = Rc::new(RefCell::new(get_strategy()));
+            let s1_fm = if matchup % 2 == 0 { X } else { Y };
+            let s2_fm = if matchup % 2 == 0 { Y } else { X };
+            println!("matchup: {}: s1_fm: {} s2_fm: {}", matchup, s1_fm, s2_fm);
+            assert_eq!(s1.borrow_mut().play_for_favoured_move(s1_fm), X);
+            assert_eq!(s2.borrow_mut().play_for_favoured_move(s2_fm), Y);
+            assert_eq!(s1.borrow_mut().play_for_favoured_move(s1_fm), Y);
+            assert_eq!(s2.borrow_mut().play_for_favoured_move(s2_fm), X);
+        }
+    }
+}
