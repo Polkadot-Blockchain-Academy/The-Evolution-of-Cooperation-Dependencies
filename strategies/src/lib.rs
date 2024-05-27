@@ -150,6 +150,7 @@ impl Display for Participant {
 }
 
 /// Struct for holding a strategy and its owner.
+#[derive(Clone)]
 pub struct OwnedStrategy {
     pub owner: Participant,
     pub strategy: Rc<RefCell<Box<dyn Strategy>>>,
