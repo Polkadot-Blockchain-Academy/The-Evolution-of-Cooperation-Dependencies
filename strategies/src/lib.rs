@@ -106,7 +106,7 @@ pub type ParticipantName = &'static str;
 pub type ParticipantPubName = &'static str;
 
 /// Represents a participant in the game.
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Copy)]
 pub struct Participant {
     /// The type of the participant (e.g., System, Remote, Onsite).
     pub participant_type: ParticipantType,
@@ -117,7 +117,7 @@ pub struct Participant {
 }
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, Display, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Display, Eq, PartialEq, Hash, Copy)]
 pub enum ParticipantType {
     System,
     Remote,
@@ -142,7 +142,7 @@ impl Participant {
 impl Display for Participant {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         if let ParticipantType::System = self.participant_type {
-            f.write_str(format!("{}", self.participant_type).as_str())
+            f.write_str(format!("{:?}", self.participant_type).as_str())
         } else {
             f.write_str(self.pub_name.to_string().as_str())
         }
@@ -232,7 +232,7 @@ mod tests {
     #[test]
     fn test_submit_strategy_macro() {
         submit_strategy!(MyStrategy { moves: 0 }, Onsite, "MyStrategy", "MyStrategy");
-        let (_, get_strategy) = provide_strategy();
+        let (participant, get_strategy) = provide_strategy();
         for matchup in 0..1 {
             let s1 = Rc::new(RefCell::new(get_strategy()));
             let s2 = Rc::new(RefCell::new(get_strategy()));
